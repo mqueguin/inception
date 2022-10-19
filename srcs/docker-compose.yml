@@ -8,7 +8,7 @@ services:
     ports: 
       - "443:443"
     volumes: 
-      - "/home/debian/data/website:/var/www/html"
+      - "wordpress_v:/var/www/html"
     depends_on:
       - wordpress
     networks:
@@ -27,7 +27,7 @@ services:
     ports: 
       - "3306:3306"
     volumes: 
-      - "/home/debian/data/db:/var/lib/mysql"
+      - "database_v:/var/lib/mysql"
     networks:
       - backend
     restart: always
@@ -52,13 +52,27 @@ services:
     ports:
       - "9000:9000"
     volumes: 
-      - "/home/debian/data/website:/var/www/html"
+      - "wordpress_v:/var/www/html"
     depends_on:
       - mariadb
     networks:
       - frontend
       - backend
     restart: always
+
+volumes:
+  database_v:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/mqueguin/data/database
+      o: bind
+  wordpress_v:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/mqueguin/data/wordpress
+      o: bind
 
 networks:
   frontend:
