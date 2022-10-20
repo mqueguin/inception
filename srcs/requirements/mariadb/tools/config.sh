@@ -1,12 +1,12 @@
 #!/bin/bash
 
-if [ ! -d "/var/run/mysqld" ]; then
+#if [ ! -d "/var/run/mysqld" ]; then
 mkdir -p /var/run/mysqld
 chown -R mysql:mysql /var/run/mysqld
-fi
+#fi
 
 
-if [ ! -d "/var/lib/mysql/mysql" ]; then
+#if [ ! -d "/var/lib/mysql/mysql" ]; then
 chown -R mysql:mysql /var/lib/mysql
 mysql_install_db --basedir=/usr --datadir=/var/lib/mysql --user=mysql
 
@@ -17,7 +17,7 @@ sed  -i 's/$MYSQL_PASSWORD/'$MYSQL_PASSWORD'/g' /tmp/init_sql.sql
 sed  -i 's/$MYSQL_ROOT_PWD/'$MYSQL_ROOT_PWD'/g' /tmp/init_sql.sql
 
 /usr/sbin/mysqld --user=mysql --bootstrap < /tmp/init_sql.sql
-fi
+#fi
 
 sed -i "s|.*bind-address\s*=.*|bind-address=0.0.0.0|g" /etc/mysql/mariadb.conf.d/50-server.cnf
 
