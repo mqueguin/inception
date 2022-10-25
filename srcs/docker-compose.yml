@@ -34,21 +34,14 @@ services:
 
 
   wordpress:
-    build: requirements/wordpress/
+    build:
+      context: .
+      dockerfile: requirements/wordpress/Dockerfile
+      args:
+        DB_NAME: ${WP_DB_NAME}
+        DB_USER: ${WP_DB_USER}
+        DB_PASS: ${WP_DB_PASSWORD}
     container_name: wordpress
-    environment:
-      WP_DB_HOST: ${WP_DB_HOST}
-      WP_DB_NAME: ${WP_DB_NAME}
-      WP_DB_USER: ${WP_DB_USER}
-      WP_DB_PASSWORD: ${WP_DB_PASSWORD}
-      WP_URL: ${WP_URL}
-      WP_TITLE: ${WP_TITLE}
-      WP_ADMIN_USER: ${WP_ADMIN_USER}
-      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
-      WP_ADMIN_PWD: ${WP_ADMIN_PWD}
-      WP_USER_LOGIN: ${WP_USER_LOGIN}
-      WP_USER_EMAIL: ${WP_USER_EMAIL}
-      WP_USER_PWD: ${WP_USER_PWD}
     ports:
       - "9000:9000"
     volumes: 
