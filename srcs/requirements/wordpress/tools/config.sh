@@ -1,27 +1,21 @@
 #!/bin/bash
 
-if [ ! -f "/var/www/html/wp-config.php" ]; then
+while ! mysql -hmariadb -u$WP_DB_USER -p$WP_DB_PASSWORD > /dev/null 2>&1; do echo "Waiting database..."; sleep 5; done
 
-cat << EOF > /var/www/html/wp-config.php
-<?php
-define( 'DB_NAME', '${DB_NAME}' );
-define( 'DB_USER', '${DB_USER}' );
-define( 'DB_PASSWORD', '${DB_PASS}' );
-define( 'DB_HOST', 'mariadb' );
-define( 'DB_CHARSET', 'utf8' );
-define( 'DB_COLLATE', '' );
-define('FS_METHOD','direct');
-\$table_prefix = 'wp_';
-define( 'WP_DEBUG', false );
-if ( ! defined( 'ABSPATH' ) ) {
-define( 'ABSPATH', __DIR__ . '/' );}
-define( 'WP_REDIS_HOST', 'redis' );
-define( 'WP_REDIS_PORT', 6379 );
-define( 'WP_REDIS_TIMEOUT', 1 );
-define( 'WP_REDIS_READ_TIMEOUT', 1 );
-define( 'WP_REDIS_DATABASE', 0 );
-require_once ABSPATH . 'wp-settings.php';
+chown -R nginx:nginx /var/www/*;
+chown -R 755 /var/www/*;
+mkdir -p /run/php/;
+touch /run/php/php7.3-fpm.pid;
 
-EOF
+if [ ! -f /var/www/html/wp-config.php ]; then
+	wp core download --version=5.3 --locale=fr_FR --allow-root
+	wp config create --dbname=$WP_DB_NAME --dbuser=$WP_DB_USER --dbpass=$WP_DB_PASSWORD --dbhost=$WP_DB_HOST --allow-root
+	wp core install --url=$WP_URL --title=$WP_TITLE --admin_user=$WP_ADMIN_USER --admin_password=$WP_ADMIN_PWD --admin_email=$WP_ADMIN_EMAIL --skip-email --allow-root
+	wp user create $WP_USER_LOGIN $WP_USER_EMAIL --user_pass=$WP_USER_PWD --allow-root
 fi
 
+if [ -f /var/www/html/wp-config.php ]; then
+	echo 'Launching Wordpress'
+	echo "\t\t----- WordPress ready ! -----"
+	exec "$@"
+fi

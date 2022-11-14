@@ -1,44 +1,24 @@
-FROM alpine:3.16
+FROM debian:buster
 
-ARG PHP_V=8 \
-    DB_NAME \
-    DB_USER \
-    DB_PASS
+RUN apt update && apt -y upgrade && apt -y install \
+	php7.3 \
+	php-fpm \
+	php-mysqli \
+	mariadb-client \
+	wget
 
-RUN apk update && apk upgrade && apk add --no-cache \
-    php${PHP_V} \
-    php${PHP_V}-fpm \
-    php${PHP_V}-mysqli \
-    php${PHP_V}-json \
-    php${PHP_V}-curl \
-    php${PHP_V}-dom \
-    php${PHP_V}-exif \
-    php${PHP_V}-fileinfo \
-    php${PHP_V}-mbstring \
-    php${PHP_V}-openssl \
-    php${PHP_V}-xml \
-    php${PHP_V}-zip \
-    php${PHP_V}-redis \
-    wget \
-    unzip && \
-    sed -i "s|listen = 127.0.0.1:9000|listen = 9000|g" \
-      /etc/php8/php-fpm.d/www.conf && \
-    sed -i "s|;listen.owner = nobody|listen.owner = nobody|g" \
-      /etc/php8/php-fpm.d/www.conf && \
-    sed -i "s|;listen.group = nobody|listen.group = nobody|g" \
-      /etc/php8/php-fpm.d/www.conf && \
-    rm -f /var/cache/apk/*
+RUN	adduser --system nginx && addgroup --system nginx
+COPY conf/php-fpm.conf /etc/php/7.3/fpm
+COPY conf/www.conf /etc/php/7.3/fpm/pool.d
+
+RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+RUN chmod +x wp-cli.phar
+RUN mv wp-cli.phar /usr/local/bin/wp
+
+COPY tools/config.sh /tmp/config.sh
 
 WORKDIR /var/www/html
 
-RUN wget https://wordpress.org/latest.zip && \
-    unzip latest.zip && \
-    cp -rf wordpress/* . && \
-    rm -rf wordpress latest.zip
+ENTRYPOINT ["sh", "/tmp/config.sh"]
+CMD ["/usr/sbin/php-fpm7.3"]
 
-COPY ./requirements/wordpress/tools/config.sh .
-
-RUN sh config.sh && rm config.sh && \
-    chmod -R 0777 wp-content/
-
-CMD ["/usr/sbin/php-fpm8", "-F"]
